@@ -30,6 +30,9 @@
     "mariadb": "^3.5.4",
     "opusscript": "^0.0.8",
     "play-dl": "^1.9.7",
+    "prisma": "^7.10.0",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
     "youtube-dl-exec": "^3.1.15",
     "youtubei.js": "^18.0.0",
     "yt-search": "^2.13.1"
@@ -37,9 +40,6 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.19.0",
-    "@types/node": "^22.20.2",
-    "prisma": "^7.10.0",
-    "tsx": "^4.23.13",
-    "typescript": "^7.0.2"
+    "@types/node": "^22.20.2"
   }
 }
