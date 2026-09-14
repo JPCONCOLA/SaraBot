@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "npx prisma generate && tsx src/index.ts",
     "dashboard": "tsx src/dashboard.ts",
     "dashboard:dev": "tsx watch src/dashboard.ts",
     "deploy": "tsx src/deploy-commands.ts",
