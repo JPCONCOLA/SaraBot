@@ -1,0 +1,81 @@
+npm warn Unknown env config "min-release-age". This will stop working in the next major version of npm.
+DiscordAPIError[40060]: Interaction has already been acknowledged.
+    at handleErrors (C:\Users\carlo\Desktop\SaraBot\node_modules\@discordjs\rest\src\lib\handlers\Shared.ts:148:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async BurstHandler.runRequest (C:\Users\carlo\Desktop\SaraBot\node_modules\@discordjs\rest\src\lib\handlers\BurstHandler.ts:144:20)
+    at async _REST.request (C:\Users\carlo\Desktop\SaraBot\node_modules\@discordjs\rest\src\lib\REST.ts:210:20)
+    at async ChatInputCommandInteraction.deferReply (C:\Users\carlo\Desktop\SaraBot\node_modules\discord.js\src\structures\interfaces\InteractionResponses.js:122:22)
+    at async Module.execute (C:\Users\carlo\Desktop\SaraBot\src\commands\play.ts:11:5)
+    at async Client.<anonymous> (C:\Users\carlo\Desktop\SaraBot\src\index.ts:90:13) {
+  rawError: {
+    message: 'Interaction has already been acknowledged.',
+    code: 40060
+  },
+  code: 40060,
+  status: 400,
+  method: 'POST',
+  url: 'https://discord.com/api/v10/interactions/1548828894549909504/aW50ZXJhY3Rpb246MTU0ODgyODg5NDU0OTkwOTUwNDpuN3ZpNFV1b0JhVmRmVEg3MlVhRmZ1dWRCRVlsOW8yYWZKbUpXcXNCU1Nzbko2ZHBpZUdXMHRuMnZHblVzQ3ZjbllRR2lwbVFreE5vSmJaTEU0OU8yWlRWMTd2ZWY4SUxTM3lvYzBCang5eHZ5NTVUTXY3djRwQ0pqVlE0alA5TA/callback?with_response=false',
+  requestBody: { files: undefined, json: { type: 5, data: [Object] } }
+}
+(node:2176) Warning: Supplying "ephemeral" for interaction response options is deprecated. Utilize flags instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+No se pudo enviar el error de la interacción: DiscordAPIError[40060]: Interaction has already been acknowledged.
+    at handleErrors (C:\Users\carlo\Desktop\SaraBot\node_modules\@discordjs\rest\src\lib\handlers\Shared.ts:148:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async BurstHandler.runRequest (C:\Users\carlo\Desktop\SaraBot\node_modules\@discordjs\rest\src\lib\handlers\BurstHandler.ts:144:20)
+    at async _REST.request (C:\Users\carlo\Desktop\SaraBot\node_modules\@discordjs\rest\src\lib\REST.ts:210:20)
+    at async ChatInputCommandInteraction.reply (C:\Users\carlo\Desktop\SaraBot\node_modules\discord.js\src\structures\interfaces\InteractionResponses.js:193:22)
+    at async Client.<anonymous> (C:\Users\carlo\Desktop\SaraBot\src\index.ts:96:53) {
+  rawError: {
+    message: 'Interaction has already been acknowledged.',
+    code: 40060
+  },
+  code: 40060,
+  status: 400,
+  method: 'POST',
+  url: 'https://discord.com/api/v10/interactions/1548828894549909504/aW50ZXJhY3Rpb246MTU0ODgyODg5NDU0OTkwOTUwNDpuN3ZpNFV1b0JhVmRmVEg3MlVhRmZ1dWRCRVlsOW8yYWZKbUpXcXNCU1Nzbko2ZHBpZUdXMHRuMnZHblVzQ3ZjbllRR2lwbVFreE5vSmJaTEU0OU8yWlRWMTd2ZWY4SUxTM3lvYzBCang5eHZ5NTVUTXY3djRwQ0pqVlE0alA5TA/callback?with_response=false',
+  requestBody: { files: [], json: { type: 4, data: [Object] } }
+}
+yt-dlp: ERROR: unable to download video data: HTTP Error 403: Forbidden
+C:\Users\carlo\Desktop\SaraBot\node_modules\tinyspawn\src\index.js:20
+  const error = new Error(message)
+                ^
+
+Error [ChildProcessError]: The command spawned as:
+
+  `C:\Users\carlo\Desktop\SaraBot\node_modules\youtube-dl-exec\bin\yt-dlp.exe --format bestaudio[ext=webm][acodec=opus]/bestaudio[ext=webm]/bestaudio --output - --quiet --no-warnings -- https://youtube.com/watch?v=4Ii8LhQqxKY`
+
+exited with:
+
+  `{ signal: 'null', code: 1 }` 
+
+with the following trace:
+
+    at createChildProcessError (C:\Users\carlo\Desktop\SaraBot\node_modules\tinyspawn\src\index.js:20:17)
+    at ChildProcess.<anonymous> (C:\Users\carlo\Desktop\SaraBot\node_modules\tinyspawn\src\index.js:65:23)
+    at ChildProcess.emit (node:events:508:28)
+    at maybeClose (node:internal/child_process:1101:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:305:5) {
+  command: 'C:\\Users\\carlo\\Desktop\\SaraBot\\node_modules\\youtube-dl-exec\\bin\\yt-dlp.exe --format bestaudio[ext=webm][acodec=opus]/bestaudio[ext=webm]/bestaudio --output - --quiet --no-warnings -- https://youtube.com/watch?v=4Ii8LhQqxKY',
+  connected: false,
+  signalCode: null,
+  exitCode: 1,
+  killed: false,
+  spawnfile: 'C:\\Users\\carlo\\Desktop\\SaraBot\\node_modules\\youtube-dl-exec\\bin\\yt-dlp.exe',
+  spawnargs: [
+    'C:\\Users\\carlo\\Desktop\\SaraBot\\node_modules\\youtube-dl-exec\\bin\\yt-dlp.exe',
+    '--format',
+    'bestaudio[ext=webm][acodec=opus]/bestaudio[ext=webm]/bestaudio',
+    '--output',
+    '-',
+    '--quiet',
+    '--no-warnings',
+    '--',
+    'https://youtube.com/watch?v=4Ii8LhQqxKY'
+  ],
+  pid: 15740,
+  stdout: '',
+  stderr: 'ERROR: unable to download video data: HTTP Error 403: Forbidden'
+}
+
+Node.js v24.13.0

@@ -1,0 +1,118 @@
+datasource db {
+  provider = "mysql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model UserEconomy {
+  id             Int                 @id @default(autoincrement())
+  userId         String
+  guildId        String
+  cash           Int                 @default(500)
+  bank           Int                 @default(0)
+  lastDailyAt    DateTime?
+  lastWorkAt     DateTime?
+  lastRobAt      DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  transactions   EconomyTransaction[]
+
+  @@unique([userId, guildId])
+  @@index([guildId, cash])
+  @@index([guildId, bank])
+}
+
+model EconomyTransaction {
+  id          Int         @id @default(autoincrement())
+  economyId   Int
+  type        String      @db.VarChar(32)
+  amount      Int
+  balanceCash Int
+  balanceBank Int
+  metadata    String?     @db.VarChar(255)
+  createdAt   DateTime    @default(now())
+  economy     UserEconomy @relation(fields: [economyId], references: [id], onDelete: Cascade)
+
+  @@index([economyId, createdAt])
+}
+
+model GuildSettings {
+  guildId   String   @id
+  prefix    String   @db.VarChar(5)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GuildCommandSetting {
+  id          Int     @id @default(autoincrement())
+  guildId     String
+  commandName String  @db.VarChar(64)
+  enabled     Boolean @default(true)
+
+  @@unique([guildId, commandName])
+  @@index([guildId])
+}
+
+model UserLevel {
+  id        Int      @id @default(autoincrement())
+  guildId   String
+  userId    String
+  xp        Int      @default(0)
+  level     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([guildId, userId])
+  @@index([guildId, xp])
+}
+
+model ReactionRole {
+  id        Int      @id @default(autoincrement())
+  guildId   String
+  channelId String
+  messageId String
+  roleId    String
+  emoji     String   @db.VarChar(128)
+  createdAt DateTime @default(now())
+
+  @@unique([messageId, roleId, emoji])
+  @@index([guildId])
+}
+
+model AutoModSettings {
+  guildId         String   @id
+  enabled         Boolean  @default(false)
+  badWords        Boolean  @default(false)
+  repeatedText    Boolean  @default(false)
+  invites         Boolean  @default(false)
+  externalLinks   Boolean  @default(false)
+  excessiveCaps   Boolean  @default(false)
+  excessiveEmojis Boolean  @default(false)
+  excessiveSpoilers Boolean @default(false)
+  excessiveMentions Boolean @default(false)
+  zalgo           Boolean  @default(false)
+  antiSpam        Boolean  @default(false)
+  blockedWords    String?  @db.Text
+  updatedAt       DateTime @updatedAt
+}
+
+model ModerationLog {
+  id        Int      @id @default(autoincrement())
+  guildId   String
+  userId    String
+  rule      String   @db.VarChar(64)
+  content   String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  @@index([guildId, createdAt])
+}
+
+model GuildModerationSettings {
+  guildId           String   @id
+  immuneRoleIds     String?  @db.Text
+  ignoredChannelIds String?  @db.Text
+  auditChannelId    String?  @db.VarChar(191)
+  auditAutoMod      Boolean  @default(true)
+  updatedAt         DateTime @updatedAt
+}

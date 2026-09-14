@@ -1,0 +1,6 @@
+
+> sarabot@1.0.0 start
+> tsx src/index.ts
+
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+✅ SaraBot está conectado como SaraBot#2298
