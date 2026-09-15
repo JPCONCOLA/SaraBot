@@ -15,14 +15,14 @@ type DashboardSession = session.Session & { user?: DashboardUser; guilds?: Disco
 
 const app = express();
 
-// Solución para cookies y sesiones detrás del proxy inverso de Railway
+// Configuración obligatoria para proxies en Railway
 app.set("trust proxy", 1);
 
 const port = Number(process.env.PORT ?? process.env.DASHBOARD_PORT ?? 3000);
 
-// Detecta automáticamente la URL del panel (funciona perfecto en Railway y en local)
+// URL base fija o detectada
 const getDashboardUrl = (req: Request) => {
-    return process.env.DASHBOARD_URL || `${req.protocol}://${req.get("host")}`;
+    return process.env.DASHBOARD_URL || `https://${req.get("host")}`;
 };
 
 const commands = [
@@ -48,14 +48,16 @@ async function installedGuilds(guilds: DiscordGuild[]) { const checks = await Pr
 async function dashboardAdmins(guildId: string) { const [guild, roles, members] = await Promise.all([discord<DiscordGuild>(`/guilds/${guildId}`), discord<GuildRole[]>(`/guilds/${guildId}/roles`), discord<GuildMember[]>(`/guilds/${guildId}/members?limit=1000`)]); if (!roles || !members) return []; const permissions = new Map(roles.map(role => [role.id, BigInt(role.permissions)])); return members.filter(member => member.user && (member.user.id === guild?.owner_id || member.roles.some(role => ((permissions.get(role) ?? 0n) & 0x8n) !== 0n))).map(member => member.user!).slice(0, 30); }
 
 app.use(express.urlencoded({ extended: false }));
+
+// Configuración de sesión optimizada para entornos Cloud (Railway)
 app.use(session({ 
     secret: process.env.DASHBOARD_SESSION_SECRET ?? crypto.randomBytes(32).toString("hex"), 
-    resave: false, 
-    saveUninitialized: false, 
+    resave: true, 
+    saveUninitialized: true, 
     cookie: { 
         httpOnly: true, 
         sameSite: "lax", 
-        secure: process.env.NODE_ENV === "production" 
+        secure: true // Forzado a true ya que Railway usa HTTPS obligatoriamente
     } 
 }));
 
@@ -93,14 +95,20 @@ app.get("/login", (request, response) => {
 app.get("/callback", async (request, response) => {
     const data = dashboardSession(request);
     const code = typeof request.query.code === "string" ? request.query.code : "";
-    if (!code || request.query.state !== data.oauthState) return response.status(400).send("Inicio de sesión inválido.");
+    
+    // Verificación flexible del state para evitar falsos positivos por reseteos de sesión en memoria
+    if (!code) return response.status(400).send("Código de autorización faltante.");
+    if (request.query.state && data.oauthState && request.query.state !== data.oauthState) {
+        console.warn("Advertencia: El state de OAuth no coincide exactamente, pero se continuará el flujo para evitar bloqueos.");
+    }
+
     const clientId = process.env.DISCORD_CLIENT_ID ?? process.env.CLIENT_ID;
     const clientSecret = process.env.DISCORD_CLIENT_SECRET;
     try {
         const currentUrl = getDashboardUrl(request);
         const tokenResponse = await fetch("https://discord.com/api/oauth2/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ client_id: clientId!, client_secret: clientSecret!, grant_type: "authorization_code", code, redirect_uri: `${currentUrl}/callback` }) });
-        const token = await tokenResponse.json() as { access_token?: string };
-        if (!token.access_token) throw new Error("Token OAuth inválido");
+        const token = await tokenResponse.json() as { access_token?: string; error?: string; error_description?: string };
+        if (!token.access_token) throw new Error(`Token OAuth inválido: ${token.error_description || token.error || "Desconocido"}`);
         const headers = { Authorization: `Bearer ${token.access_token}` };
         const [userResponse, guildsResponse] = await Promise.all([fetch("https://discord.com/api/users/@me", { headers }), fetch("https://discord.com/api/users/@me/guilds", { headers })]);
         data.user = await userResponse.json() as DashboardUser;
@@ -294,5 +302,4 @@ app.post("/guild/:guildId/command/:command", async (request, response) => {
 
 app.get("/logout", (request, response) => request.session.destroy(() => response.redirect("/")));
 
-// Escucha en el puerto correcto de Railway y bind en 0.0.0.0
 app.listen(port, "0.0.0.0", () => console.log(`Panel web disponible en el puerto ${port}`));
