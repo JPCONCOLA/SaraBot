@@ -14,6 +14,9 @@ app.get("/login", (request, response) => {
 });
 
 app.get("/callback", async (request, response) => {
+    console.log("CALLBACK RECIBIDO - Query:", request.query);
+    console.log("SESIÓN ACTUAL:", request.session);
+    // ... resto del código
     const data = dashboardSession(request);
     const code = typeof request.query.code === "string" ? request.query.code : "";
     if (!code) return response.status(400).send("No se recibió el código de autorización de Discord.");
