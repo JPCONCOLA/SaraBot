@@ -14,6 +14,10 @@ type GuildMember = { user?: DashboardUser; roles: string[] };
 type DashboardSession = session.Session & { user?: DashboardUser; guilds?: DiscordGuild[]; oauthState?: string; csrf?: string; language?: "es" | "en" };
 
 const app = express();
+
+// Solución para cookies y sesiones detrás del proxy inverso de Railway
+app.set("trust proxy", 1);
+
 const port = Number(process.env.PORT ?? process.env.DASHBOARD_PORT ?? 3000);
 
 // Detecta automáticamente la URL del panel (funciona perfecto en Railway y en local)
@@ -44,7 +48,16 @@ async function installedGuilds(guilds: DiscordGuild[]) { const checks = await Pr
 async function dashboardAdmins(guildId: string) { const [guild, roles, members] = await Promise.all([discord<DiscordGuild>(`/guilds/${guildId}`), discord<GuildRole[]>(`/guilds/${guildId}/roles`), discord<GuildMember[]>(`/guilds/${guildId}/members?limit=1000`)]); if (!roles || !members) return []; const permissions = new Map(roles.map(role => [role.id, BigInt(role.permissions)])); return members.filter(member => member.user && (member.user.id === guild?.owner_id || member.roles.some(role => ((permissions.get(role) ?? 0n) & 0x8n) !== 0n))).map(member => member.user!).slice(0, 30); }
 
 app.use(express.urlencoded({ extended: false }));
-app.use(session({ secret: process.env.DASHBOARD_SESSION_SECRET ?? crypto.randomBytes(32).toString("hex"), resave: false, saveUninitialized: false, cookie: { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" } }));
+app.use(session({ 
+    secret: process.env.DASHBOARD_SESSION_SECRET ?? crypto.randomBytes(32).toString("hex"), 
+    resave: false, 
+    saveUninitialized: false, 
+    cookie: { 
+        httpOnly: true, 
+        sameSite: "lax", 
+        secure: process.env.NODE_ENV === "production" 
+    } 
+}));
 
 function view(text: string, content: string) {
     return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SaraBot · ${text}</title><style>:root{--bg:#0b1020;--surface:#151d33;--surface-2:#1b2642;--line:#2a385e;--text:#f4f7ff;--muted:#99a6c5;--brand:#7c6cff;--brand-2:#a99dff;--green:#46d39a;--red:#ff7085}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 0 0,#202a58 0,transparent 30%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif}.shell{max-width:1200px;margin:auto;padding:28px 20px 60px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}.brand{font-weight:800;font-size:22px;color:var(--text);text-decoration:none}.brand i{font-style:normal;color:var(--brand-2)}.button,button{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--brand);color:white;border:0;border-radius:10px;padding:10px 14px;text-decoration:none;font-weight:700;cursor:pointer}.button:hover,button:hover{filter:brightness(1.12)}.button.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}.hero,.card{background:linear-gradient(145deg,rgba(31,43,75,.96),rgba(18,26,47,.96));border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.2)}.hero{padding:52px;overflow:hidden;position:relative}.hero:after{content:'✦';position:absolute;right:8%;top:-45px;font-size:190px;color:rgba(124,108,255,.12)}h1{font-size:clamp(30px,5vw,48px);margin:0 0 12px;max-width:680px}h2{margin:0 0 7px;font-size:20px}p{line-height:1.55}.muted{color:var(--muted)}.grid{display:grid;gap:16px}.guilds{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));margin-top:20px}.guild{display:block;padding:20px;text-decoration:none;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:14px;transition:.18s}.guild:hover{transform:translateY(-3px);border-color:var(--brand)}.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:20px}.sidebar{height:max-content;padding:12px}.side-link{display:block;color:var(--muted);padding:11px 12px;text-decoration:none;border-radius:9px}.side-link:hover{background:var(--surface-2);color:white}.main{min-width:0}.card{padding:22px;margin-bottom:18px}.stats{grid-template-columns:repeat(3,minmax(0,1fr));margin:18px 0}.stat{padding:18px;background:var(--surface-2);border-radius:13px}.stat b{display:block;font-size:26px;margin-top:6px}.label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.commands{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}.command{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:15px;background:var(--surface-2);border:1px solid transparent;border-radius:12px}.command:hover{border-color:var(--line)}.status{font-size:12px;font-weight:700;color:var(--green)}.status.off{color:var(--red)}input{padding:11px;border-radius:9px;border:1px solid var(--line);background:#0d1427;color:white;min-width:100px}.form-row{display:flex;align-items:end;gap:10px;flex-wrap:wrap}.notice{border-left:4px solid var(--brand);padding:12px 15px;background:rgba(124,108,255,.12);border-radius:8px;color:var(--muted)}@media(max-width:720px){.hero{padding:32px 24px}.layout{grid-template-columns:1fr}.sidebar{display:flex;gap:4px;overflow:auto}.side-link{white-space:nowrap}.stats{grid-template-columns:1fr}.top{margin-bottom:18px}}</style></head><body><main class="shell"><header class="top"><a class="brand" href="/">Sara<i>Bot</i> Panel</a></header>${content}</main></body></html>`;
