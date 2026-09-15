@@ -54,6 +54,7 @@ async function main() {
     // --- Eventos ---
     client.once("clientReady", () => {
         console.log(`✅ SaraBot está conectado como ${client.user?.tag}`);
+        console.log("DATABASE_URL configurada:", process.env.DATABASE_URL ? "Sí" : "No");
     });
 
     client.on("interactionCreate", async interaction => {
