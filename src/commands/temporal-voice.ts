@@ -36,36 +36,39 @@ export const data = new SlashCommandBuilder()
 export const permission = PermissionFlagsBits.ModerateMembers;
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+    // Discord exige confirmar la interacción en menos de tres segundos; las
+    // consultas a miembros y MySQL pueden tardar más en Railway.
+    await interaction.deferReply();
     const guild = interaction.guild;
-    if (!guild) return void await interaction.reply({ content: "❌ Este comando solo puede usarse en un servidor.", ephemeral: true });
+    if (!guild) return void await interaction.editReply({ content: "❌ Este comando solo puede usarse en un servidor." });
     const subcommand = interaction.options.getSubcommand();
 
     if (subcommand === "lista") {
         const tasks = await prisma.voiceDisconnect.findMany({ where: { guildId: guild.id }, orderBy: { executeAt: "asc" } });
-        if (!tasks.length) return void await interaction.reply({ content: "ℹ️ No hay desconexiones programadas en este servidor.", ephemeral: true });
+        if (!tasks.length) return void await interaction.editReply({ content: "ℹ️ No hay desconexiones programadas en este servidor." });
         const lines = tasks.map(task => `• <@${task.userId}> — <t:${Math.floor(task.executeAt.getTime() / 1_000)}:R> (tarea #${task.id})`);
-        return void await interaction.reply({ embeds: [{ color: 0x5865F2, title: "⏰ Desconexiones programadas", description: lines.join("\n") }] });
+        return void await interaction.editReply({ embeds: [{ color: 0x5865F2, title: "⏰ Desconexiones programadas", description: lines.join("\n") }] });
     }
 
     const user = interaction.options.getUser("usuario", true);
     if (subcommand === "cancelar") {
         const result = await prisma.voiceDisconnect.deleteMany({ where: { guildId: guild.id, userId: user.id } });
-        return void await interaction.reply(result.count
+        return void await interaction.editReply(result.count
             ? { embeds: [{ color: 0x57F287, title: "✅ Desconexión cancelada", description: `Se canceló la desconexión programada de <@${user.id}>.` }] }
-            : { content: "ℹ️ Ese usuario no tiene una desconexión programada en este servidor.", ephemeral: true });
+            : { content: "ℹ️ Ese usuario no tiene una desconexión programada en este servidor." });
     }
 
     const member = await guild.members.fetch(user.id).catch(() => null);
-    if (!member) return void await interaction.reply({ content: "❌ No encontré a ese usuario en el servidor.", ephemeral: true });
-    if (!member.voice.channel) return void await interaction.reply({ content: "❌ Ese usuario no está conectado a un canal de voz.", ephemeral: true });
+    if (!member) return void await interaction.editReply({ content: "❌ No encontré a ese usuario en el servidor." });
+    if (!member.voice.channel) return void await interaction.editReply({ content: "❌ Ese usuario no está conectado a un canal de voz." });
 
     const botMember = await guild.members.fetchMe();
     if (!botMember.permissions.has(PermissionFlagsBits.MoveMembers)) {
-        return void await interaction.reply({ content: "❌ Necesito el permiso **Mover miembros** para programar esta desconexión.", ephemeral: true });
+        return void await interaction.editReply({ content: "❌ Necesito el permiso **Mover miembros** para programar esta desconexión." });
     }
 
     const duration = parseDuration(interaction.options.getString("tiempo", true));
-    if (!duration) return void await interaction.reply({ content: "❌ El tiempo no es válido. Usa `30m`, `2h`, `90s` o `1h30m`.", ephemeral: true });
+    if (!duration) return void await interaction.editReply({ content: "❌ El tiempo no es válido. Usa `30m`, `2h`, `90s` o `1h30m`." });
 
     const executeAt = new Date(Date.now() + duration);
     const existing = await prisma.voiceDisconnect.findUnique({ where: { guildId_userId: { guildId: guild.id, userId: user.id } } });
@@ -73,5 +76,5 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         ? await prisma.voiceDisconnect.update({ where: { id: existing.id }, data: { executeAt, lockedAt: null } })
         : await prisma.voiceDisconnect.create({ data: { guildId: guild.id, userId: user.id, executeAt } });
     const replaced = existing ? " Se reemplazó la programación anterior." : "";
-    await interaction.reply({ embeds: [{ color: 0x57F287, title: "✅ Desconexión programada", description: `<@${user.id}> será desconectado del canal de voz en ${formatDuration(duration)}.${replaced}\nTarea #${task.id} · <t:${Math.floor(executeAt.getTime() / 1_000)}:R>` }] });
+    await interaction.editReply({ embeds: [{ color: 0x57F287, title: "✅ Desconexión programada", description: `<@${user.id}> será desconectado del canal de voz en ${formatDuration(duration)}.${replaced}\nTarea #${task.id} · <t:${Math.floor(executeAt.getTime() / 1_000)}:R>` }] });
 }
