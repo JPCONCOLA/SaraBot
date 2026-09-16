@@ -10,6 +10,7 @@ import { prisma } from "./lib/prisma.js";
 import { checkAutoMod } from "./utils/automod.js";
 import { executeMusic } from "./utils/music.js";
 import { musicPanel } from "./utils/musicPanel.js";
+import { VoiceDisconnectScheduler } from "./utils/voiceDisconnectScheduler.js";
 
 dotenv.config();
 
@@ -55,6 +56,8 @@ async function main() {
     client.once("clientReady", () => {
         console.log(`✅ SaraBot está conectado como ${client.user?.tag}`);
         console.log("DATABASE_URL configurada:", process.env.DATABASE_URL ? "Sí" : "No");
+        new VoiceDisconnectScheduler(client).start();
+        console.log("Programador de desconexiones de voz iniciado.");
     });
 
     client.on("interactionCreate", async interaction => {

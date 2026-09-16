@@ -97,6 +97,7 @@ app.get("/login", (request, response) => {
 });
 
 app.get("/callback", async (request, response) => {
+    console.log("🔥 CALLBACK NUEVO DE SARABOT");
     const data = dashboardSession(request);
     const code = typeof request.query.code === "string" ? request.query.code : "";
     if (!code) return response.status(400).send("No se recibió el código de autorización de Discord.");

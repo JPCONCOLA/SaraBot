@@ -116,3 +116,16 @@ model GuildModerationSettings {
   auditAutoMod      Boolean  @default(true)
   updatedAt         DateTime @updatedAt
 }
+
+model VoiceDisconnect {
+  id        Int      @id @default(autoincrement())
+  guildId   String
+  userId    String
+  executeAt DateTime
+  lockedAt  DateTime?
+  createdAt DateTime @default(now())
+
+  @@unique([guildId, userId])
+  @@index([executeAt])
+  @@index([guildId, userId])
+}
